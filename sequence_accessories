@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -o pipefail
+
+#   Usage message
+function Usage() {
+    echo -e "\
+Usage:  $(basename $0) <accessory> \n\
+Where:  <accessory> is one of: \n\
+        SummarizeStats
+" >&2
+    exit 1
+}
+
+#   Export the function
+export -f Usage
+
+#   A function to check a sample list
+function checkSampleList() {
+    local sampleList=$1
+    if ! [[ -f "${sampleList}" ]]; then echo "Failed to find ${sampleList}, exiting..." >&2; exit 1; fi
+    for sample in $(<"${sampleList}"); do if ! [[ -f "${sample}" ]]; then echo "Failed to find sample ${sample}, exiting..." >&2; exit 1; fi; done
+}
+
+#   Export the function
+export -f checkSampleList
+
+#   A function to check dependencies
+function checkDependency() {
+    local dependency=$1
+    if ! $(command -v ${dependency} > /dev/null 2> /dev/null); then echo "Failed to find ${dependency}, exiting..." >&2; exit 1; fi
+}
+
+#   Some checks
+SEQ_ACC=$(pwd -P)
+ACC_DIR="${SEQ_ACC}/Accessories"
+if ! [[ -d "${ACC_DIR}" ]]; then echo "Cannot find the Accessories! Please leave this script in the 'sequence_accessories' directory" >&2; exit 1; fi
+if [[ "$#" -lt 1 ]]; then Usage; fi
+
+#   Figure out which accessory we're working with and remove it from the argument list
+ACCESSORY="$1"
+shift
+
+#   Run sequence_accessories
+case "${ACCESSORY}" in
+    SummarizeStats)
+        echo "$(basename $0): Generating summary statistics..." >&2
+        # echo "Not yet implemented..." >&2; exit 1
+        source "${ACC_DIR}/SummarizeStats.sh"
+        #   Check our dependencies for SummarizeStats
+        for prog in "${idx_deps[@]}"; do checkDependency ${prog}; done
+        #   Check to make sure we have arguments for SummarizeStats
+        if [[ "$#" -lt 1 ]]; then idxUsage; fi # If not, exit with usage message
+        #   Parse arguments
+        for arg in "$@" # For every argument in our argument list
+        do
+            case "${arg}" in # Use a case statment to figure out what argument we have
+            #   Use the #*= do delete everything up to and including the '=' from the argument (arg value)
+            #   Use the %=* to delete everything beyond the '=' from the argument (arg param)
+                --sample-list=*) # Sample list
+                    SAMPLE_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --project=*)
+                    PROJECT="${arg#*=}"
+                    shift
+                    ;;
+                *)
+                    echo -e "Parameter error: ${arg%=*} not recognized \n" >&2; idxUsage
+                    ;;
+            esac
+        done
+        #   Set a default project parameter
+        if [[ -z "${PROJECT}" ]]; then PROJECT="${PROJECT_DEFAULT}"; fi
+        #   Validate our sample list
+        checkSampleList "${SAMPLE_LIST}"
+        SummarizeStats "${SAMPLE_LIST}" "${PROJECT}"
+        ;;
+    * )
+        Usage
+        ;;
+esac

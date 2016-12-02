@@ -110,6 +110,7 @@ case "${ACCESSORY}" in
         #   Validate our sample list
         checkSampleList "${SAMPLE_LIST}"
         DumpFastq "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PAIRED}"
+        ;;
     * )
         Usage
         ;;

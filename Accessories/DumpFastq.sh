@@ -1,25 +1,44 @@
 #!/bin/env bash
 
-#PBS -l mem=1000mb,nodes=1:ppn=16,walltime=72:00:00
-#PBS -m abe
-#PBS -M pmorrell@umn.edu
-#PBS -q mesabi
+#   Written by Peter L. Morrell, 26 July 2016, St. Paul, MN
+#   Updated 27 October 2016, 29 November 2016
+#   Modified by Paul Hoffman
 
-set -euo pipefail
+#   Dependencies for DumpFastq
+declare -a dump_deps=(parallel fastq-dump)
+OUTPUT_DEFAULT="$(pwd -P)/FASTQ"
 
-#    Peter L. Morrell, 26 July 2016, St. Paul, MN
-#    Updated 27 October 2016, 29 November 2016
-#    Dependencies: SRA Toolkit
+#   Create a usage message
+function dumpUsage() {
+    echo -e "\
+$(basename $0) DumpFastq: Use fastq-dump from the SRA Toolkit to dump \n\
+        SRA archive files (.sra) to gzipped FASTQ files (.fastq.gz) \n\
+\n\
+Usage:  $(basename $0) DumpFastq --sample-list=sample_list [--outdirectory=outdirectory] [--paired] \n\
+Where:  <sample_list> is a list of SRA files to be dumped to FASTQ format \n\
+        [outdirectory] is an optional output directory (defaults to '${OUTPUT_DEFAULT}') \n\
+        [--paired] is passed when SRA files should be dumped to paired-end FASTQ files \n\
+" >&2
+    exit 1
+}
 
-module load sratoolkit
-module load parallel
+#   Export the function
+export -f dumpUsage
 
-#    directory for output of fastq.gz files
-WORKING=/panfs/roc/scratch/pmorrell/MBE_Barley
+#   DumpFastq
+function DumpFastq() {
+    local sampleList="$1" # Where are our samples?
+    local outdir="$2" # Where do we put our outputs?
+    local paired="$3" # Are our samples paired end?
+    #   Make an out directory
+    (set -x; mkdir -p "${outdir}")
+    #   Set fastq-dump options
+    local dumpOpts="-I -F --gzip --outdir ${outdir}"
+    if ${paired}; then local dumpOpts="--split-files ${dumpOpts}"; fi
+    #   Run fastq-dump
+    parallel --verbose "fastq-dump ${dumpOpts} {}" :::: "${sampleList}"
+    echo "Gzipped FASTQ files can be found at ${outdir}" >&2
+}
 
-#   initalize the array that will hold a list of SRA files
-declare -a SRA=($(find ${WORKING} -maxdepth 1 -name '*.sra' -type f))
-echo "${#SRA[@]} samples"
-
-parallel --verbose "fastq-dump --split-files -I -F --gzip {} --outdir ${WORKING}" ::: ${SRA[@]}
-
+#   Export the function
+export -f DumpFastq

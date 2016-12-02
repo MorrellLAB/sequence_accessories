@@ -7,7 +7,8 @@ function Usage() {
     echo -e "\
 Usage:  $(basename $0) <accessory> \n\
 Where:  <accessory> is one of: \n\
-        SummarizeStats
+        SummarizeStats \n\
+        DumpFastq \n\
 " >&2
     exit 1
 }
@@ -48,7 +49,7 @@ case "${ACCESSORY}" in
         # echo "Not yet implemented..." >&2; exit 1
         source "${ACC_DIR}/SummarizeStats.sh"
         #   Check our dependencies for SummarizeStats
-        for prog in "${idx_deps[@]}"; do checkDependency ${prog}; done
+        for prog in "${idx_deps[@]}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for SummarizeStats
         if [[ "$#" -lt 1 ]]; then idxUsage; fi # If not, exit with usage message
         #   Parse arguments
@@ -76,6 +77,39 @@ case "${ACCESSORY}" in
         checkSampleList "${SAMPLE_LIST}"
         SummarizeStats "${SAMPLE_LIST}" "${PROJECT}"
         ;;
+    DumpFastq)
+        echo "$(basename $0): Dumping SRA files to FastQ files..." >&2
+        source "${ACC_DIR}/DumpFastq.sh"
+        #   Check our dependencies for DumpFastq
+        for prog in "${dump_deps[@]}"; do checkDependency "${prog}"; done
+        #   Check to make sure we have arguments for DumpFastq
+        if [[ "$#" -lt 1 ]]; then dumpUsage; fi # If not, exit with usage message
+        #   Parse arguments
+        for arg in "$@"
+        do
+            case "${arg}" in
+                --sample-list=*)
+                    SAMPLE_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --outdirectory=*)
+                    OUTDIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                --paired)
+                    PAIRED=true
+                    ;;
+                *)
+                    echo -e "Parameter error: ${arg%=*} not recognized \n" >&2; dumpUsage
+                    ;;
+            esac
+        done
+        #   Set defaults
+        if [[ -z "${PAIRED}" ]]; then PAIRED=false; fi # Assume not paired if not specified on the command line
+        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"
+        #   Validate our sample list
+        checkSampleList "${SAMPLE_LIST}"
+        DumpFastq "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PAIRED}"
     * )
         Usage
         ;;

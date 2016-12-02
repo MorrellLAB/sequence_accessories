@@ -1,0 +1,13 @@
+#   Blacklist everything
+########################
+*
+
+#   Allow shell scripts
+#   Allow .gitignore
+#   Allow README.md
+#   Allow sequence_accessories
+######################################
+!.gitignore
+!*.sh
+!README.md
+!sequence_accessories

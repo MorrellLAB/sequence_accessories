@@ -11,13 +11,15 @@ OUTPUT_DEFAULT="$(pwd -P)/FASTQ"
 #   Create a usage message
 function dumpUsage() {
     echo -e "\
-$(basename $0) DumpFastq: Use fastq-dump from the SRA Toolkit to dump \n\
+DumpFastq: Use fastq-dump from the SRA Toolkit to dump \n\
         SRA archive files (.sra) to gzipped FASTQ files (.fastq.gz) \n\
 \n\
-Usage:  $(basename $0) DumpFastq --sample-list=sample_list [--outdirectory=outdirectory] [--paired] \n\
-Where:  <sample_list> is a list of SRA files to be dumped to FASTQ format \n\
-        [outdirectory] is an optional output directory (defaults to '${OUTPUT_DEFAULT}') \n\
-        [--paired] is passed when SRA files should be dumped to paired-end FASTQ files \n\
+Arguments:  --sample-list=sample_list [--outdirectory=outdirectory] [--paired] \n\
+Where:      <sample_list> is a list of SRA files to be dumped to FASTQ format \n\
+            [outdirectory] is an optional output directory \n\
+                (defaults to '${OUTPUT_DEFAULT}') \n\
+            [--paired] is passed when SRA files should be dumped \n\
+                to paired-end FASTQ files \n\
 " >&2
     exit 1
 }

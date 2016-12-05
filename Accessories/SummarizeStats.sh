@@ -7,12 +7,13 @@ PROJECT_DEFAULT='STATS'
 #   Create a usage message
 function idxUsage() {
     echo -e "\
-$(basename $0) SummarizeStats: Use SAMTools idxstats to generate simple coverage \n\
+SummarizeStats: Use SAMTools idxstats to generate simple coverage \n\
     statistics and create a summary statiscs report \n\
 \n\
-Usage:  $(basename $0) SummarizeStats --sample-list=<sample_list> [--project=project] \n\
-Where:  <sample_list>   is a list of indexed BAM files\n\
-        [project]       is an optional name for the output file, defaults to '${PROJECT_DEFAULT}' \n\
+Arguments:  --sample-list=<sample_list> [--project=project] \n\
+Where:      <sample_list>   is a list of indexed BAM files \n\
+            [project]       is an optional name for the output file, \n\
+                (defaults to '${PROJECT_DEFAULT}') \n\
 " >&2
     exit 1
 }

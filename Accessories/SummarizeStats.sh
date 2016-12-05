@@ -73,6 +73,8 @@ function SummarizeStats() {
     local -a idxstats=($(find "${stats_dir}" -maxdepth 1 -type f -name "*.idxstats")) # Find the idxstats files
     echo "Summarizing statistics..." >&2
     parallel getCounts {} > "${output}" ::: "${idxstats[@]}"
+    echo "IDX stats can be found at ${stats_dir}" >&2
+    echo "Summary can be found at ${output}" >&2
 }
 
 #   Export the function

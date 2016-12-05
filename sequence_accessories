@@ -9,12 +9,22 @@ Usage:  $(basename $0) <accessory> \n\
 Where:  <accessory> is one of: \n\
         SummarizeStats \n\
         DumpFastq \n\
+        SRADownloader \n\
 " >&2
     exit 1
 }
 
 #   Export the function
 export -f Usage
+
+#   A function to say invalid argument
+function invalid() {
+    local arg="$1"
+    echo -e "\nParameter error: ${arg%=*} not recognized\n" >&2
+}
+
+#   Export the function
+export -f invalid
 
 #   A function to check a sample list
 function checkSampleList() {
@@ -67,7 +77,7 @@ case "${ACCESSORY}" in
                     shift
                     ;;
                 *)
-                    echo -e "Parameter error: ${arg%=*} not recognized \n" >&2; idxUsage
+                    invalid "${arg}"; idxUsage
                     ;;
             esac
         done
@@ -75,6 +85,7 @@ case "${ACCESSORY}" in
         if [[ -z "${PROJECT}" ]]; then PROJECT="${PROJECT_DEFAULT}"; fi
         #   Validate our sample list
         checkSampleList "${SAMPLE_LIST}"
+        #   Run SummarizeStats
         SummarizeStats "${SAMPLE_LIST}" "${PROJECT}"
         ;;
     DumpFastq)
@@ -100,16 +111,58 @@ case "${ACCESSORY}" in
                     PAIRED=true
                     ;;
                 *)
-                    echo -e "Parameter error: ${arg%=*} not recognized \n" >&2; dumpUsage
+                    invalid "${arg}"; dumpUsage
                     ;;
             esac
         done
         #   Set defaults
         if [[ -z "${PAIRED}" ]]; then PAIRED=false; fi # Assume not paired if not specified on the command line
-        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"
+        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"; fi
         #   Validate our sample list
         checkSampleList "${SAMPLE_LIST}"
+        #   Run DumpFastq
         DumpFastq "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PAIRED}"
+        ;;
+    SRADownloader)
+        echo "$(basename $0): Downloading from the SRA" >&2
+        source "${ACC_DIR}/SRADownloader.sh"
+        #   Check our dependencies for SRADownloader
+        for prog in "${sra_deps}"; do checkDependency "${prog}"; done
+        #   Check to make sure we have arguments for SRADownloader
+        if [[ "$#" -lt 1 ]]; then SRAUsage; fi
+        #   Parse arguments
+        for arg in "$@"
+        do
+            case "${arg}" in
+                --sample-list=*)
+                    SAMPLE_LIST="${arg#=*}"
+                    shift
+                    ;;
+                --sample-type=*)
+                    TYPE="${arg#=*}"
+                    shift
+                    ;;
+                --outdirectory=*)
+                    OUTDIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                --validate)
+                    VALIDATE=true
+                    shift
+                    ;;
+                *)
+                    invalid "${arg}"; SRAUsage
+                    ;;
+            esac
+        done
+        #   Set some defaults
+        if [[ "${VALIDATE}" ]]; then checkDependency vdb-validate; else VALIDATE=false; fi
+        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"; fi
+        #   Check our inputs
+        if ! $(grep "${TYPE}" <(echo "${sra_types[@]}" | tr ' ' '\n') > /dev/null 2> /dev/null); then echo -e "\nInvalid type: ${TYPE}\nChoose from: ${sra_types[@]}\n" >&2; fi
+        checkSampleList "${SAMPLE_LIST}"
+        #   Run SRADownloader
+        SRADownloader "${SAMPLE_LIST}" "${TYPE}" "${OUTDIRECTORY}" "${VALIDATE}"
         ;;
     * )
         Usage

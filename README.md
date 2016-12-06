@@ -18,6 +18,20 @@ When reading documentation for `sequence_accessories`, required arguments are de
 
 ## Accessories
 
+Basic usage is done with the following command:
+
+```bash
+./sequence_accessories <accessory> [options]
+```
+
+Where `<accessory>` one of the accessories listed below and `[options]` are arguments for the accessory. A simple help message can be found by running:
+
+```bash
+./sequence_accessories
+```
+
+Detailed help for each accessory can be found by running the accessory without any arguments.
+
 ### SummarizeStats
 
 The SummarizeStats accessory runs [SAMTools](https://github.com/samtools/samtools) idxstats on BAM files and creates a text file with the sequence length, number of mapped reads, and number of unmapped reads for every sample passed to it. If the BAM files are not indexed, then SummarizeStats will generate CSI-format indexes for the BAM files.

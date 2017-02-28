@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -o pipefail
+set -eo pipefail
 
 #   Usage message
 function Usage() {
@@ -23,14 +23,14 @@ function invalid() {
     echo -e "\nParameter error: ${arg%=*} not recognized\n" >&2
 }
 
-#   Export the function
-export -f invalid
-
 #   A function to check a sample list
 function checkSampleList() {
     local sampleList=$1
-    if ! [[ -f "${sampleList}" ]]; then echo "Failed to find ${sampleList}, exiting..." >&2; exit 1; fi
-    for sample in $(<"${sampleList}"); do if ! [[ -f "${sample}" ]]; then echo "Failed to find sample ${sample}, exiting..." >&2; exit 1; fi; done
+    [[ -f "${sampleList}" ]] || (echo "Failed to find ${sampleList}, exiting..." >&2; exit 1)
+    for sample in $(<"${sampleList}")
+    do
+        [[ -f "${sample}" ]] || (echo "Failed to find sample ${sample}, exiting..." >&2; exit 1)
+    done
 }
 
 #   Export the function
@@ -39,16 +39,16 @@ export -f checkSampleList
 #   A function to check dependencies
 function checkDependency() {
     local dependency=$1
-    if ! $(command -v ${dependency} > /dev/null 2> /dev/null); then echo "Failed to find ${dependency}, exiting..." >&2; exit 1; fi
+    $(command -v ${dependency} > /dev/null 2> /dev/null) || ( echo "Failed to find ${dependency}, exiting..." >&2; exit 1)
 }
 
 #   Some checks
 SEQ_ACC=$(pwd -P)
 ACC_DIR="${SEQ_ACC}/Accessories"
-if ! [[ -d "${ACC_DIR}" ]]; then echo "Cannot find the Accessories! Please leave this script in the 'sequence_accessories' directory" >&2; exit 1; fi
-if [[ "$#" -lt 1 ]]; then Usage; fi
+[[ -d "${ACC_DIR}" ]] || (echo "Cannot find the Accessories! Please leave this script in the 'sequence_accessories' directory" >&2; exit 1)
 
 #   Figure out which accessory we're working with and remove it from the argument list
+[[ "$#" -lt 1 ]] && Usage
 ACCESSORY="$1"
 shift
 
@@ -61,7 +61,7 @@ case "${ACCESSORY}" in
         #   Check our dependencies for SummarizeStats
         for prog in "${idx_deps[@]}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for SummarizeStats
-        if [[ "$#" -lt 1 ]]; then idxUsage; fi # If not, exit with usage message
+        [[ "$#" -lt 1 ]] && idxUsage # If not, exit with usage message
         #   Parse arguments
         for arg in "$@" # For every argument in our argument list
         do
@@ -82,7 +82,7 @@ case "${ACCESSORY}" in
             esac
         done
         #   Set a default project parameter
-        if [[ -z "${PROJECT}" ]]; then PROJECT="${PROJECT_DEFAULT}"; fi
+        [[ -z "${PROJECT}" ]] && PROJECT="${PROJECT_DEFAULT}"
         #   Validate our sample list
         checkSampleList "${SAMPLE_LIST}"
         #   Run SummarizeStats
@@ -94,7 +94,7 @@ case "${ACCESSORY}" in
         #   Check our dependencies for DumpFastq
         for prog in "${dump_deps[@]}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for DumpFastq
-        if [[ "$#" -lt 1 ]]; then dumpUsage; fi # If not, exit with usage message
+        [[ "$#" -lt 1 ]] && dumpUsage # If not, exit with usage message
         #   Parse arguments
         for arg in "$@"
         do
@@ -116,8 +116,8 @@ case "${ACCESSORY}" in
             esac
         done
         #   Set defaults
-        if [[ -z "${PAIRED}" ]]; then PAIRED=false; fi # Assume not paired if not specified on the command line
-        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"; fi
+        [[ -z "${PAIRED}" ]] && PAIRED=false # Assume not paired if not specified on the command line
+        [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
         #   Validate our sample list
         checkSampleList "${SAMPLE_LIST}"
         #   Run DumpFastq
@@ -129,17 +129,17 @@ case "${ACCESSORY}" in
         #   Check our dependencies for SRADownloader
         for prog in "${sra_deps}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for SRADownloader
-        if [[ "$#" -lt 1 ]]; then SRAUsage; fi
+        [[ "$#" -lt 1 ]] && SRAUsage
         #   Parse arguments
         for arg in "$@"
         do
             case "${arg}" in
                 --sample-list=*)
-                    SAMPLE_LIST="${arg#=*}"
+                    SAMPLE_LIST="${arg#*=}"
                     shift
                     ;;
                 --sample-type=*)
-                    TYPE="${arg#=*}"
+                    TYPE="${arg#*=}"
                     shift
                     ;;
                 --outdirectory=*)
@@ -156,11 +156,15 @@ case "${ACCESSORY}" in
             esac
         done
         #   Set some defaults
-        if [[ "${VALIDATE}" ]]; then checkDependency vdb-validate; else VALIDATE=false; fi
-        if [[ -z "${OUTDIRECTORY}" ]]; then OUTDIRECTORY="${OUTPUT_DEFAULT}"; fi
+        [[ "${VALIDATE}" ]] && checkDependency vdb-validate || VALIDATE=false
+        [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
+        [[ -z "${TYPE}" ]] && (echo "Missing --sample-type, please choose from: ${SRATYPES[@]}"; exit 1)
         #   Check our inputs
-        if ! $(grep "${TYPE}" <(echo "${sra_types[@]}" | tr ' ' '\n') > /dev/null 2> /dev/null); then echo -e "\nInvalid type: ${TYPE}\nChoose from: ${sra_types[@]}\n" >&2; fi
-        checkSampleList "${SAMPLE_LIST}"
+        # $(grep "${TYPE}" <(echo "${sra_types[@]}" | tr ' ' '\n') > /dev/null 2> /dev/null) || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${sra_types[@]}\n" >&2; exit 1)
+        # echo ${#SRATYPES[@]}; exit 5
+        [[ "${SRATYPES[@]}" =~ "${TYPE}" ]] || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${SRATYPES[@]}\n" >&2; exit 1)
+        # checkSampleList "${SAMPLE_LIST}"
+        [[ -f "${SAMPLE_LIST}" ]] || (echo "Failed to find ${SAMPLE_LIST}, exiting..."; exit 1)
         #   Run SRADownloader
         SRADownloader "${SAMPLE_LIST}" "${TYPE}" "${OUTDIRECTORY}" "${VALIDATE}"
         ;;

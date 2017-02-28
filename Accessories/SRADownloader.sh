@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/bin/bash
 
 #   Written by Peter L. Morrell, 18 October 2016, St. Paul, MN
 #   Adapted by Paul Hoffman
@@ -8,9 +8,9 @@
 
 #   Set defaults
 declare -a sra_deps=(lftp parallel) # Dependencies
-declare -a sra_types=(experiment run sample study) # Valid SRA types
+declare -a SRATYPES=(experiment run sample study) # Valid SRA types
 OUTPUT_DEFAULT="$(pwd -P)/SRA" # Default output directory
-SRA_FTP='ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads' # Base URL for SRA
+declare -x SRA_FTP='ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads' # Base URL for SRA
 
 #   Usage message
 function SRAUsage(){
@@ -18,8 +18,7 @@ function SRAUsage(){
 SRADownloader: Use LFTP to download SRA files by experiment, run, sample,\n\
     or study. Optionally, use vdb-validate to validate downloaded files\n\
 \n\
-Arguments:  --sample-list=<sample_list> --sample-type=<sample_type>\n\
-                [--outdirectory=outdirectory] [--validate]\n\
+Arguments:  --sample-list=<sample_list> --sample-type=<sample_type> [--outdirectory=outdirectory] [--validate]\n\
 Where:      <sample_list> is a list of SRA Accessions\n\
             <sample_type> is one of 'experiment', 'run', 'sample', or 'study'\n\
             [outdirectory] is an optional output directory\n\
@@ -68,7 +67,7 @@ function SRADownloader() {
     local outdirectory="$3" # Where do we store the output files?
     local validate="$4" # Do we validate?
     #   Assemble our base URL
-    case "${sampleType}"
+    case "${sampleType}" in
         experiment)
             local ftpsite="${SRA_FTP}/ByExp/sra"
             ;;
@@ -87,8 +86,9 @@ function SRADownloader() {
     esac
     #   Download files
     parallel --verbose "downloadSRA {} ${ftpsite} ${outdirectory}" :::: "${sampleList}"
+    #   Validate if asked
+    $("${validate}") && validateSRA "${outdirectory}"
     echo "Downloaded SRA files can be found at ${output}" >&2
-    if [[ "${validate}" ]]; then validateSRA "${outdirectory}"; fi
 }
 
 #   Export the function

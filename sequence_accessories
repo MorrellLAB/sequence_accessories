@@ -10,6 +10,7 @@ Where:  <accessory> is one of: \n\
         SummarizeStats \n\
         DumpFastq \n\
         SRADownloader \n\
+        MergeBAM \n\
 " >&2
     exit 1
 }

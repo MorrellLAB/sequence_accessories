@@ -160,14 +160,57 @@ case "${ACCESSORY}" in
         [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
         [[ -z "${TYPE}" ]] && (echo "Missing --sample-type, please choose from: ${SRATYPES[@]}"; exit 1)
         #   Check our inputs
-        # $(grep "${TYPE}" <(echo "${sra_types[@]}" | tr ' ' '\n') > /dev/null 2> /dev/null) || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${sra_types[@]}\n" >&2; exit 1)
-        # echo ${#SRATYPES[@]}; exit 5
         [[ "${SRATYPES[@]}" =~ "${TYPE}" ]] || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${SRATYPES[@]}\n" >&2; exit 1)
-        # checkSampleList "${SAMPLE_LIST}"
         [[ -f "${SAMPLE_LIST}" ]] || (echo "Failed to find ${SAMPLE_LIST}, exiting..."; exit 1)
         #   Run SRADownloader
         SRADownloader "${SAMPLE_LIST}" "${TYPE}" "${OUTDIRECTORY}" "${VALIDATE}"
         ;;
+    MergeBAM)
+        echo "$(basename $0): Merging BAM files" >&2
+        source "${ACC_DIR}/MergeBAM.sh"
+        #   Check our dependencies for MergeBAM
+        for prog in "${merge_deps}"; do checkDependency "${prog}"; done
+        #   Check to make sure we have arguments for MergeBAM
+        [[ "$#" -lt 1 ]] && MergeUsage
+        for arg in "$@"
+        do
+            case "${arg}" in
+                --sample-list=*)
+                    SAMPLE_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --name-table=*)
+                    TABLE="${arg#*=}"
+                    shift
+                    ;;
+                --outdirectory=*#)
+                    OUTDIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                *)
+                    invalid "${arg}"; MergeUsage
+                    ;;
+            esac
+        done
+        #   Set some defaults
+        [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUT_DEFAULT}"
+        #   Check our inputs
+        checkSampleList "${SAMPLE_LIST}"
+        [[ -f "${TABLE}" ]] || (echo "Cannot find ${TABLE}, exiting..." >&2; exit 1)
+        #   Make our output directory
+        mkdir -p "${OUTDIRECTORY}"
+        #   Read our sample names into an associative array
+        declare -A SAMPLE_NAMES
+        while read LINE
+        do
+            #   Get the first value (merged sample name) from the list
+            NAME=$(echo "${LINE}" | tr '[:space:]' ' ' | cut -f 1 -d ' ')
+            #   If the first value starts with a '#', skip the rest of the line
+            [[ "${NAME:0:1}" == '#' ]] && continue
+            #   Make the name the key in our associative array, with the value being a all the old names
+            SAMPLE_NAMES["${NAME}"]="$(echo ${LINE} | tr '[:space:]' ${SAMPLE_DELIMITER} | cut -f 2- -d ${SAMPLE_DELIMITER})"
+        done < "${TABLE}"
+        parallel --verbose --xapply "MergeBAM ${SAMPLE_LIST} {1} ${OUTDIRECTORY} {2}" ::: "${!SAMPLE_NAMES[@]}" ::: "${SAMPLE_NAMES[@]}"
     * )
         Usage
         ;;

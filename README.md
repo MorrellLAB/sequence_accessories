@@ -12,7 +12,7 @@ Much like `sequence_handling`, `sequence_accessories` is designed to process lar
 
 ## Setting parameters
 
-Unlike `sequence_handling`, `sequence_accessories` uses command line based arguments instead of parameters set in a configuration file. The format for arguments is `--parameter-name=value`. This is different than the normal `-p value` syntax found in most programs; however, the equals-delimeted syntax is easier to write a parser for. In addition to traditional arguments, some accessories also have flags. Flags follow the format `--flag`; to trigger the flags, simply pass it on the command line.
+Unlike `sequence_handling`, `sequence_accessories` uses command line based arguments instead of parameters set in a configuration file. The format for arguments is `--parameter-name=value`. This is different than the normal `-p value` syntax found in most programs; however, the equals-delimeted syntax is easier to write a parser for. In addition to arguments, some accessories also have flags. Flags follow the format `--flag`; to trigger a flag, simply pass it on the command line.
 
 When reading documentation for `sequence_accessories`, required arguments are denoted by angular brackets around the value while optional arguments are denoted by square braces around the argument and value. All flags are optional, and are also dentoed by the square braces.
 
@@ -72,15 +72,28 @@ The SRADownloader accessory downloads SRA archives from the SRA's FTP server. Th
  - [GNU Parallel](http://www.gnu.org/software/parallel/)
  - [vdb-validate](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=toolkit_doc&f=vdb-validate) from the [SRA Toolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=toolkit_doc) if validating within SRADownloader
 
+### MergeBAM
+
+The MergeBAM accessory uses BAMtools to merge several BAM files into a single BAM file. This accessory can handle multiple merges at once.
+
+#### Arguments
+ - `--sample-list=<sample_list>`: required list of BAM files
+ - `--name-table=<table>`: a table where the first column is the sample name for the merged BAM file and the remaining columns are the names of BAM files that make up the merged BAM
+ - `[--outdirectory=outdirectory]`: optional directory to place the merged BAM
+
+#### Dependencies
+ - [BAMtools](https://github.com/pezmaster31/bamtools)
+ - [GNU Parallel](http://www.gnu.org/software/parallel/)
+
 ## Future Accessories
 
 ### ListGenerator
 
 The ListGenerator accessory will create a sample list for use with `sequence_handling` and `sequence_accessories`
 
-### RegionalSNPs
+<!--### RegionalSNPs
 
-The RegionalSNPs accessory will call SNPs by region using Freebayes
+The RegionalSNPs accessory will call SNPs by region using Freebayes-->
 
 ### FastSanger
 

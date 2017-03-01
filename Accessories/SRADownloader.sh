@@ -8,19 +8,19 @@
 
 #   Set defaults
 declare -a sra_deps=(lftp parallel) # Dependencies
-declare -a SRATYPES=(experiment run sample study) # Valid SRA types
+declare -a SRATYPES=(experiment run study) # Valid SRA types
 OUTPUT_DEFAULT="$(pwd -P)/SRA" # Default output directory
 declare -x SRA_FTP='ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads' # Base URL for SRA
 
 #   Usage message
 function SRAUsage(){
     echo -e "\
-SRADownloader: Use LFTP to download SRA files by experiment, run, sample,\n\
+SRADownloader: Use LFTP to download SRA files by experiment, run,\n\
     or study. Optionally, use vdb-validate to validate downloaded files\n\
 \n\
 Arguments:  --sample-list=<sample_list> --sample-type=<sample_type> [--outdirectory=outdirectory] [--validate]\n\
 Where:      <sample_list> is a list of SRA Accessions\n\
-            <sample_type> is one of 'experiment', 'run', 'sample', or 'study'\n\
+            <sample_type> is one of 'experiment', 'run', or 'study'\n\
             [outdirectory] is an optional output directory\n\
                 (defaults to '${OUTPUT_DEFAULT}')
             [--validate] to validate downloaded SRA files with vdb-validate\n\
@@ -73,9 +73,6 @@ function SRADownloader() {
             ;;
         run)
             local ftpsite="${SRA_FTP}/ByRun/sra"
-            ;;
-        sample)
-            local ftpsite="${SRA_FTP}/BySample/sra"
             ;;
         study)
             local ftpsite="${SRA_FTP}/ByStudy/sra"

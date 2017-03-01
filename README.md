@@ -63,7 +63,7 @@ The SRADownloader accessory downloads SRA archives from the SRA's FTP server. Th
 
 #### Arguments:
  - `--sample-list=<sample_list>`: required list of SRA accession numbers to downloads
- - `--sample-type=<sample_type>`: required type of accession number given; can choose from: 'experiment', 'run', 'sample', or 'study'
+ - `--sample-type=<sample_type>`: required type of accession number given; can choose from: 'experiment', 'run', or 'study'
  - `[--outdirectory=outdirectory]`: optional directory to download SRA archives to
  - `[--validate]`: flag to use vdb-validate to run a checksum on the SRA archives within SRADownloader
 

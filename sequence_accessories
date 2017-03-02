@@ -211,7 +211,9 @@ case "${ACCESSORY}" in
         while read LINE
         do
             #   Get the first value (merged sample name) from the list
-            NAME=$(echo "${LINE}" | tr '[:space:]' ' ' | cut -f 1 -d ' ')
+            #   Convert any spaces on this line to single spaces
+            #   Then condense all repeated spaces to a single space
+            NAME=$(echo "${LINE}" | tr '[:space:]' ' ' | tr -s ' '| cut -f 1 -d ' ')
             #   If the first value starts with a '#', skip the rest of the line
             [[ "${NAME:0:1}" == '#' ]] && continue
             #   Make the name the key in our associative array, with the value being a all the old names

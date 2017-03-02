@@ -7,10 +7,12 @@ function Usage() {
     echo -e "\
 Usage:  $(basename $0) <accessory> \n\
 Where:  <accessory> is one of: \n\
-        SummarizeStats \n\
-        DumpFastq \n\
-        SRADownloader \n\
-        MergeBAM \n\
+            ListGenerator \n\
+            SummarizeStats \n\
+            DumpFastq \n\
+            SRADownloader \n\
+            MergeBAM \n\
+            SimpleCoverage \n\
 " >&2
     exit 1
 }
@@ -61,6 +63,9 @@ shift
 
 #   Run sequence_accessories
 case "${ACCESSORY}" in
+    ListGenerator)
+        echo "$(basename $0): Creating a sample list..." >&2
+        ;;
     SummarizeStats)
         echo "$(basename $0): Generating summary statistics..." >&2
         # echo "Not yet implemented..." >&2; exit 1
@@ -131,7 +136,7 @@ case "${ACCESSORY}" in
         DumpFastq "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PAIRED}"
         ;;
     SRADownloader)
-        echo "$(basename $0): Downloading from the SRA" >&2
+        echo "$(basename $0): Downloading from the SRA..." >&2
         source "${ACC_DIR}/SRADownloader.sh"
         #   Check our dependencies for SRADownloader
         for prog in "${sra_deps}"; do checkDependency "${prog}"; done
@@ -173,7 +178,7 @@ case "${ACCESSORY}" in
         SRADownloader "${SAMPLE_LIST}" "${TYPE}" "${OUTDIRECTORY}" "${VALIDATE}"
         ;;
     MergeBAM)
-        echo "$(basename $0): Merging BAM files" >&2
+        echo "$(basename $0): Merging BAM files..." >&2
         source "${ACC_DIR}/MergeBAM.sh"
         #   Check our dependencies for MergeBAM
         for prog in "${merge_deps}"; do checkDependency "${prog}"; done
@@ -221,7 +226,7 @@ case "${ACCESSORY}" in
         done < "${TABLE}"
         parallel --verbose --xapply "MergeBAM ${SAMPLE_LIST} {1} ${OUTDIRECTORY} {2}" ::: "${!SAMPLE_NAMES[@]}" ::: "${SAMPLE_NAMES[@]}"
     SimpleCoverage)
-        echo "$(basename $0): Simply calculating coverage" >&2
+        echo "$(basename $0): Simply calculating coverage..." >&2
         source "${ACC_DIR}/SimpleCoverage.sh"
         #   Check our dependencies
         for prog in "${cov_deps[@]}"; do checkDependency "${prog}"; done

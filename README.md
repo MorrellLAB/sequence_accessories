@@ -96,8 +96,8 @@ The SimpleCoverage accessory uses SAMTools to calculate coverage over BAM files.
  - `[--outdirectory=outdirectory]`: optional directory to place the
 
 #### Dependencies
- - [SAMTools](http://www.htslib.org/)
  - [awk](http://www.cs.princeton.edu/~bwk/btl.mirror/)
+ - [SAMTools](http://www.htslib.org/)
  - [GNU Parallel](http://www.gnu.org/software/parallel/)
 
 ## Future Accessories

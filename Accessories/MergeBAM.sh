@@ -16,7 +16,7 @@ MergeBAM: Use BAMtools to merge BAM files together \n\
 Arguments:  --sample-list=<sample_list> --name-table=<table> [--outdirectory=outdirectory] \n\
 Where:      <sample_list> is a list of BAM files, named with the sample names in <table> \n\
             <table> is the sample name table (see below) \n\
-            <outdirectory>] is an optional output directory, defaults to ${OUT_DEFAULT} \n\
+            [outdirectory] is an optional output directory, defaults to ${OUT_DEFAULT} \n\
 \n\
 The sample name table is a whitespace-delimited table where the new sample name \n\
     is in the first column and the old sample names are in subsequent columns \n\

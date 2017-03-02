@@ -24,6 +24,9 @@ function invalid() {
     echo -e "\nParameter error: ${arg%=*} not recognized\n" >&2
 }
 
+#   Export the function
+export -f invalid
+
 #   A function to check a sample list
 function checkSampleList() {
     local sampleList=$1
@@ -42,6 +45,9 @@ function checkDependency() {
     local dependency=$1
     $(command -v ${dependency} > /dev/null 2> /dev/null) || ( echo "Failed to find ${dependency}, exiting..." >&2; exit 1)
 }
+
+#   Export the function
+export -f checkDependency
 
 #   Some checks
 SEQ_ACC=$(pwd -P)
@@ -212,6 +218,46 @@ case "${ACCESSORY}" in
             SAMPLE_NAMES["${NAME}"]="$(echo ${LINE} | tr '[:space:]' ${SAMPLE_DELIMITER} | cut -f 2- -d ${SAMPLE_DELIMITER})"
         done < "${TABLE}"
         parallel --verbose --xapply "MergeBAM ${SAMPLE_LIST} {1} ${OUTDIRECTORY} {2}" ::: "${!SAMPLE_NAMES[@]}" ::: "${SAMPLE_NAMES[@]}"
+    SimpleCoverage)
+        echo "$(basename $0): Simply calculating coverage" >&2
+        source "${ACC_DIR}/SimpleCoverage.sh"
+        #   Check our dependencies
+        for prog in "${cov_deps[@]}"; do checkDependency "${prog}"; done
+        #   Check to make sure we have arguments for SimpleCoverage
+        [[ "$#" -lt 1 ]] && covUsage
+        #   Parse arguments
+        for arg in "$@"; do
+            case "${arg}" in
+                --sample-list=*)
+                    SAMPLE_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --genome-size=*)
+                    TARGET="${arg#*=}"
+                    shift
+                    ;;
+                --outdirectory=*)
+                    OUTDIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                --project=*)
+                    PROJECT="${arg#=*}"
+                    shift
+                    ;;
+                *)
+                    invalid "${arg}"; covUsage
+                    ;;
+            esac
+        done
+        #   Set some defaults
+        [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
+        [[ -z "${PROJECT}" ]] && PROJECT="${PROJECT_DEFAULT}"
+        #   Check our arguments
+        checkSampleList "${SAMPLE_LIST}"
+        # isInteger "${TARGET}"
+        #   Make our output directory
+        mkdir -p "${OUTDIRECTORY}"
+        SimpleCoverage "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PROJECT}" "${TARGET}"
     * )
         Usage
         ;;

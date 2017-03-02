@@ -85,6 +85,21 @@ The MergeBAM accessory uses BAMtools to merge several BAM files into a single BA
  - [BAMtools](https://github.com/pezmaster31/bamtools)
  - [GNU Parallel](http://www.gnu.org/software/parallel/)
 
+### SimpleCoverage
+
+The SimpleCoverage accessory uses SAMTools to calculate coverage over BAM files. This accessory will spit out a table that summarizes the average depth over the entire sample
+
+#### Arguments
+ - `--sample-list=<sample_list>`: required list of BAM files
+ - `[--genome-size=<genome_size>]`: optional size of the genome, will calculate automatically if not specified
+ - `[--project=<project>]`: optional name for the output file, defaults to 'SimpleCoverage'
+ - `[--outdirectory=<outdirectory>]`: optional directory to place the
+
+#### Dependencies
+ - [SAMTools](http://www.htslib.org/)
+ - [awk](http://www.cs.princeton.edu/~bwk/btl.mirror/)
+ - [GNU Parallel](http://www.gnu.org/software/parallel/)
+
 ## Future Accessories
 
 ### ListGenerator

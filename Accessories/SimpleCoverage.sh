@@ -10,7 +10,7 @@ function covUsage() {
     echo -e "\
 SimpleCoverage: Use SAMTools to calculate coverage of a BAM file.\n\
 \n\
-Arguments:  --sample-list=<sample_list> [--genome-size=<genome_size>] [--project=<project>] [--outdirectory=<outdirectory>] \n\
+Arguments:  --sample-list=<sample_list> [--genome-size=genome_size] [--project=project] [--outdirectory=outdirectory] \n\
 Where:      <sample_list>   is a list of indexed BAM files \n\
             [genome_size]   is an optional genome size will calculate if not specified) \n\
             [outdirectory]  is an optional output directory, defaults to ${OUT_DEFAULT} \n\

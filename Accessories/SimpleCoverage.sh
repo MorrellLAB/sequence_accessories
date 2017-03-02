@@ -36,8 +36,8 @@ export -f isInteger
 function genomeSize() {
     local bamfile="$1" # What BAM file are we working with?
     local size="$(samtools view -H ${bamfile} \
-        | grep -P '^@SQ' \
-        | cut -f 3 -d ':' \
+        | grep -oE "LN:[[:digit:]]+" \
+        | cut -f 2 -d ':' \
         | awk '{sum+=$1} END {print sum}')"
     echo "${size}"
 }

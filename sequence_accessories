@@ -65,10 +65,58 @@ shift
 case "${ACCESSORY}" in
     ListGenerator)
         echo "$(basename $0): Creating a sample list..." >&2
+        source "${ACC_DIR}/ListGenerator.sh"
+        #   Check dependencies
+        for prog in "${list_deps[@]}"; do checkDependency "${prog}";  done
+        #   Check to make sure we have arguments
+        [[ "$#" -lt 1 ]] && ListUsage
+        #   Parse arguments
+        for arg in "$@"; do
+            case "${arg}" in
+                --sample-directory=*)
+                    DIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                --output-list=*)
+                    OUTPUT_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --extension=*)
+                    EXTENSION="${arg#*=}"
+                    shift
+                    ;;
+                --append-list=*)
+                    APPEND_LIST="${ARG#*=}"
+                    shift
+                    ;;
+                --follow-tree)
+                    FOLLOW=true
+                    shift
+                    ;;
+                *)
+                    ListUsage
+                    ;;
+            esac
+        done
+        #   Validate arguments
+        # ([ -z "${OUTPUT_LIST+zzz}" ] || [ -z "${APPEND+zzz}" ]) || (echo "Cannot add and append, please choose one or the other" >&2; exit 1)
+        if ! ([ -z "${OUTPUT_LIST}" ] || [ -z "${APPEND_LIST}" ]); then
+            #   If we were given OUTPUT_LIST and APPEND_LIST
+            echo "Cannot add and append, please choose one or the other" >&2
+            exit 1 # That's not allowed
+        elif ([ -z "${OUTPUT_LIST}" ] && ! [ -z "${APPEND_LIST}" ]); then
+            #   If we have OUTPUT_LIST instead of APPEND_LIST, use APPEND_LIST and append
+            MY_LIST="${APPEND_LIST}"; APPEND=true
+        elif (! [ -z "${OUTPUT_LIST}" ] && [ -z "${APPEND_LIST}" ]); then
+            #   If we have OUTPUT_LIST instead of APPEND_LIST, use OUTPUT_LIST and don't append
+            MY_LIST="${OUTPUT_LIST}"; APPEND=false
+        else
+            #   If we have neither OUTPUT_LIST nor APPEND_LIST, use OUT_DEFAULT and don't append
+            MY_LIST="${OUT_DEFAULT}"; APPEND=false
+        fi
         ;;
     SummarizeStats)
         echo "$(basename $0): Generating summary statistics..." >&2
-        # echo "Not yet implemented..." >&2; exit 1
         source "${ACC_DIR}/SummarizeStats.sh"
         #   Check our dependencies for SummarizeStats
         for prog in "${idx_deps[@]}"; do checkDependency "${prog}"; done
@@ -225,6 +273,7 @@ case "${ACCESSORY}" in
             SAMPLE_NAMES["${NAME}"]="$(echo ${LINE} | tr '[:space:]' ${SAMPLE_DELIMITER} | cut -f 2- -d ${SAMPLE_DELIMITER})"
         done < "${TABLE}"
         parallel --verbose --xapply "MergeBAM ${SAMPLE_LIST} {1} ${OUTDIRECTORY} {2}" ::: "${!SAMPLE_NAMES[@]}" ::: "${SAMPLE_NAMES[@]}"
+        ;;
     SimpleCoverage)
         echo "$(basename $0): Simply calculating coverage..." >&2
         source "${ACC_DIR}/SimpleCoverage.sh"
@@ -265,6 +314,7 @@ case "${ACCESSORY}" in
         #   Make our output directory
         mkdir -p "${OUTDIRECTORY}"
         SimpleCoverage "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PROJECT}" "${TARGET}"
+        ;;
     * )
         Usage
         ;;

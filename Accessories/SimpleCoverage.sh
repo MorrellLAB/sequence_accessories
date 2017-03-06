@@ -13,7 +13,7 @@ SimpleCoverage: Use SAMTools to calculate coverage of a BAM file.\n\
 Arguments:  --sample-list=<sample_list> [--genome-size=genome_size] [--project=project] [--outdirectory=outdirectory] \n\
 Where:      <sample_list>   is a list of indexed BAM files \n\
             [genome_size]   is an optional genome size will calculate if not specified) \n\
-            [outdirectory]  is an optional output directory, defaults to ${OUT_DEFAULT} \n\
+            [outdirectory]  is an optional output directory, defaults to ${OUTPUT_DEFAULT} \n\
             [project]       is an optional name for the output file, defaults to '${PROJECT_DEFAULT}' \n\
 " >&2
     exit 1

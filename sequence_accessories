@@ -65,6 +65,7 @@ shift
 case "${ACCESSORY}" in
     ListGenerator)
         echo "$(basename $0): Creating a sample list..." >&2
+        echo "ListGenerator is not yet ready, exiting..." >&2; exit 8
         source "${ACC_DIR}/ListGenerator.sh"
         #   Check dependencies
         for prog in "${list_deps[@]}"; do checkDependency "${prog}";  done

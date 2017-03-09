@@ -276,7 +276,7 @@ case "${ACCESSORY}" in
         parallel --verbose --xapply "MergeBAM ${SAMPLE_LIST} {1} ${OUTDIRECTORY} {2}" ::: "${!SAMPLE_NAMES[@]}" ::: "${SAMPLE_NAMES[@]}"
         ;;
     SimpleCoverage)
-        echo "$(basename $0): Simply calculating coverage..." >&2
+        echo "$(basename $0): Calculating simple coverage estimations..." >&2
         source "${ACC_DIR}/SimpleCoverage.sh"
         #   Check our dependencies
         for prog in "${cov_deps[@]}"; do checkDependency "${prog}"; done

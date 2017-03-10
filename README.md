@@ -91,7 +91,7 @@ The SimpleCoverage accessory uses SAMTools to calculate coverage over BAM files.
 
 #### Arguments
  - `--sample-list=<sample_list>`: required list of BAM files
- - `[--genome-size=genome_size]`: optional size of the genome, will calculate automatically if not specified
+ - `[--genome-size=genome_size]`: optional size of the genome in number of base pairs, will calculate automatically if not specified; if you have exome sequencing data, provide the exome size
  - `[--project=project]`: optional name for the output file, defaults to 'SimpleCoverage'
  - `[--outdirectory=outdirectory]`: optional directory to place the
 

@@ -44,6 +44,7 @@ Detailed help for each accessory is available by running it without arguments.
  - `FreeBayes_SNP_Calls`
  - `SubsampleFastq`
  - `UG100_filter`
+ - `PanDepthCoverage`
 
 ### SummarizeStats
 
@@ -154,6 +155,25 @@ Runs quality filtering for the UG100 cohort variant calls.
 
 #### Dependencies
  - [bcftools](https://samtools.github.io/bcftools/) 1.21 or higher
+
+### PanDepthCoverage
+
+Calculates coverage depth over BAM/CRAM files using [PanDepth](https://github.com/HuiyangYu/PanDepth). Supports whole-genome, gene-level (GFF/GTF), region-level (BED), and windowed coverage modes. The `--gff`, `--bed`, and `--window-size` options are mutually exclusive; if none is given, per-chromosome statistics are reported.
+
+#### Arguments
+ - `--sample-list=<sample_list>`: required list of BAM or CRAM files
+ - `[--gff=gff_file]`: optional GFF/GTF file for gene-level coverage
+ - `[--bed=bed_file]`: optional BED file for region-level coverage
+ - `[--window-size=window_size]`: optional window size in bp for windowed coverage
+ - `[--feature=feature_type]`: GFF/GTF feature to parse — `CDS` or `exon` (default: `CDS`)
+ - `[--min-mapq=min_mapq]`: minimum mapping quality filter (default: `0`)
+ - `[--threads=threads]`: PanDepth threads per sample (default: `3`)
+ - `[--project=project]`: optional output file prefix (default: `PanDepthCoverage`)
+ - `[--outdirectory=outdirectory]`: optional output directory
+
+#### Dependencies
+ - [PanDepth](https://github.com/HuiyangYu/PanDepth) v2.26 or higher
+ - [GNU Parallel](http://www.gnu.org/software/parallel/)
 
 ## Future Accessories
 

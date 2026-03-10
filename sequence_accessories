@@ -16,8 +16,7 @@ Where:  <accessory> is one of: \n\
             AddBAMLane \n\
             FreeBayes_SNP_Calls \n\
             SubsampleFastq \n\
-            UG100_filter \n\
-" >&2
+            UG100_filter \n\            PanDepthCoverage \" >&2
     exit 1
 }
 
@@ -342,6 +341,71 @@ case "${ACCESSORY}" in
     UG100_filter)
         echo "$(basename $0): Running UG100_filter..." >&2
         bash "${ACC_DIR}/UG100_filter.sh" "$@"
+        ;;
+    PanDepthCoverage)
+        echo "$(basename $0): Calculating coverage with PanDepth..." >&2
+        source "${ACC_DIR}/PanDepthCoverage.sh"
+        #   Check dependencies
+        for prog in "${pandepth_deps[@]}"; do checkDependency "${prog}"; done
+        #   Check for required arguments
+        [[ "$#" -lt 1 ]] && pandepthUsage
+        #   Parse arguments
+        GFF=''; BED=''; WINDOW=''; MIN_MAPQ=''; PD_THREADS=''
+        for arg in "$@"; do
+            case "${arg}" in
+                --sample-list=*)
+                    SAMPLE_LIST="${arg#*=}"
+                    shift
+                    ;;
+                --gff=*)
+                    GFF="${arg#*=}"
+                    shift
+                    ;;
+                --bed=*)
+                    BED="${arg#*=}"
+                    shift
+                    ;;
+                --window-size=*)
+                    WINDOW="${arg#*=}"
+                    shift
+                    ;;
+                --feature=*)
+                    FEATURE="${arg#*=}"
+                    shift
+                    ;;
+                --min-mapq=*)
+                    MIN_MAPQ="${arg#*=}"
+                    shift
+                    ;;
+                --threads=*)
+                    PD_THREADS="${arg#*=}"
+                    shift
+                    ;;
+                --outdirectory=*)
+                    OUTDIRECTORY="${arg#*=}"
+                    shift
+                    ;;
+                --project=*)
+                    PROJECT="${arg#*=}"
+                    shift
+                    ;;
+                *)
+                    invalid "${arg}"; pandepthUsage
+                    ;;
+            esac
+        done
+        #   Set defaults
+        [[ -z "${OUTDIRECTORY:-}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
+        [[ -z "${PROJECT:-}" ]]      && PROJECT="${PROJECT_DEFAULT}"
+        [[ -z "${FEATURE:-}" ]]      && FEATURE="${FEATURE_DEFAULT}"
+        [[ -z "${MIN_MAPQ:-}" ]]     && MIN_MAPQ='0'
+        [[ -z "${PD_THREADS:-}" ]]   && PD_THREADS="${THREADS_DEFAULT}"
+        #   Validate target mode
+        validateTargetMode "${GFF}" "${BED}" "${WINDOW}"
+        #   Validate sample list
+        checkSampleList "${SAMPLE_LIST}"
+        #   Run PanDepthCoverage
+        PanDepthCoverage "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PROJECT}" "${GFF}" "${BED}" "${WINDOW}" "${FEATURE}" "${MIN_MAPQ}" "${PD_THREADS}"
         ;;
     * )
         Usage

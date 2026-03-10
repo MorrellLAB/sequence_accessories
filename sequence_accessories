@@ -13,6 +13,10 @@ Where:  <accessory> is one of: \n\
             SRADownloader \n\
             MergeBAM \n\
             SimpleCoverage \n\
+            AddBAMLane \n\
+            FreeBayes_SNP_Calls \n\
+            SubsampleFastq \n\
+            UG100_filter \n\
 " >&2
     exit 1
 }
@@ -188,7 +192,7 @@ case "${ACCESSORY}" in
         echo "$(basename $0): Downloading from the SRA..." >&2
         source "${ACC_DIR}/SRADownloader.sh"
         #   Check our dependencies for SRADownloader
-        for prog in "${sra_deps}"; do checkDependency "${prog}"; done
+        for prog in "${sra_deps[@]}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for SRADownloader
         [[ "$#" -lt 1 ]] && SRAUsage
         #   Parse arguments
@@ -219,9 +223,16 @@ case "${ACCESSORY}" in
         #   Set some defaults
         [[ "${VALIDATE}" ]] && checkDependency vdb-validate || VALIDATE=false
         [[ -z "${OUTDIRECTORY}" ]] && OUTDIRECTORY="${OUTPUT_DEFAULT}"
-        [[ -z "${TYPE}" ]] && (echo "Missing --sample-type, please choose from: ${SRATYPES[@]}"; exit 1)
+        [[ -z "${TYPE}" ]] && (echo "Missing --sample-type, please choose from: ${SRATYPES[*]}"; exit 1)
         #   Check our inputs
-        [[ "${SRATYPES[@]}" =~ "${TYPE}" ]] || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${SRATYPES[@]}\n" >&2; exit 1)
+        valid_type=false
+        for sra_type in "${SRATYPES[@]}"; do
+            if [[ "${sra_type}" == "${TYPE}" ]]; then
+                valid_type=true
+                break
+            fi
+        done
+        [[ "${valid_type}" == true ]] || (echo -e "\nInvalid type: ${TYPE}\nChoose from: ${SRATYPES[*]}\n" >&2; exit 1)
         [[ -f "${SAMPLE_LIST}" ]] || (echo "Failed to find ${SAMPLE_LIST}, exiting..."; exit 1)
         #   Run SRADownloader
         SRADownloader "${SAMPLE_LIST}" "${TYPE}" "${OUTDIRECTORY}" "${VALIDATE}"
@@ -230,7 +241,7 @@ case "${ACCESSORY}" in
         echo "$(basename $0): Merging BAM files..." >&2
         source "${ACC_DIR}/MergeBAM.sh"
         #   Check our dependencies for MergeBAM
-        for prog in "${merge_deps}"; do checkDependency "${prog}"; done
+        for prog in "${merge_deps[@]}"; do checkDependency "${prog}"; done
         #   Check to make sure we have arguments for MergeBAM
         [[ "$#" -lt 1 ]] && MergeUsage
         for arg in "$@"
@@ -315,6 +326,22 @@ case "${ACCESSORY}" in
         #   Make our output directory
         mkdir -p "${OUTDIRECTORY}"
         SimpleCoverage "${SAMPLE_LIST}" "${OUTDIRECTORY}" "${PROJECT}" "${TARGET}"
+        ;;
+    AddBAMLane)
+        echo "$(basename $0): Running AddBAMLane..." >&2
+        bash "${ACC_DIR}/AddBAMLane.sh" "$@"
+        ;;
+    FreeBayes_SNP_Calls)
+        echo "$(basename $0): Running FreeBayes_SNP_Calls..." >&2
+        bash "${ACC_DIR}/FreeBayes_SNP_Calls.sh" "$@"
+        ;;
+    SubsampleFastq)
+        echo "$(basename $0): Running SubsampleFastq..." >&2
+        bash "${ACC_DIR}/SubsampleFastq.sh" "$@"
+        ;;
+    UG100_filter)
+        echo "$(basename $0): Running UG100_filter..." >&2
+        bash "${ACC_DIR}/UG100_filter.sh" "$@"
         ;;
     * )
         Usage
